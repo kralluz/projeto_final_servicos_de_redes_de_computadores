@@ -10,7 +10,7 @@
 **Valor:** 5 Pontos  
 **Data da Entrega:** 29/04/2025
 
----
+# Projeto de Infraestrutura de Rede Corporativa com Docker
 
 ## Objetivo
 Implementar uma infraestrutura de rede corporativa básica utilizando Docker, integrando serviços essenciais como:
@@ -27,12 +27,87 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
 ## Escopo do Projeto
 
 ### 1. Serviços Básicos de Rede
-- **DNS (Bind9 ou dnsmasq):**
-  - Resolução de nomes local.
-  - Zonas forward e reverse.
-- **DHCP (ISC DHCP ou dhcpd):**
-  - Atribuição automática de IPs.
-  - Reservas de IPs fixos.
+
+#### DNS (Bind9)
+Responsável por resolver nomes dentro da rede local (`corp.local`) e realizar a resolução reversa (associar IPs a nomes de hosts).
+
+**Configuração no Projeto:**
+- Foi utilizado o **Bind9** para criar um servidor DNS.
+- As zonas foram configuradas da seguinte forma:
+  - **Zona Forward**: `corp.local`, associando nomes como `dns.corp.local`, `dhcp.corp.local`, `ldap.corp.local`, entre outros, aos respectivos endereços IP.
+  - **Zona Reverse**: `10.168.192.in-addr.arpa`, permitindo a resolução reversa dos IPs da rede `192.168.10.0/24`.
+- Consultas para domínios externos são encaminhadas para os servidores públicos do Google (`8.8.8.8`, `8.8.4.4`).
+
+**Infraestrutura em Docker:**
+```dockerfile
+FROM ubuntu:20.04
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y bind9 dnsutils
+
+COPY setup-bind.sh /usr/local/bin/setup-bind.sh
+
+RUN bash /usr/local/bin/setup-bind.sh
+
+EXPOSE 53/udp 53/tcp
+
+CMD ["named", "-g", "-c", "/etc/bind/named.conf"]
+```
+
+**Setup automático:**
+- Utilização de um script `setup-bind.sh` que remove as configurações padrão do Bind9 e gera automaticamente:
+  - `named.conf.options`
+  - `named.conf.local`
+  - Arquivos de zona (`db.corp.local` e `db.192.168.10`)
+- O DNS escuta em todas as interfaces (`listen-on { any; };`) e permite consultas de qualquer origem (`allow-query { any; };`).
+
+---
+
+#### DHCP (ISC DHCP Server)
+Responsável por atribuir automaticamente endereços IP e outras configurações de rede aos dispositivos conectados.
+
+**Configuração no Projeto:**
+- Foi utilizado o **ISC DHCP Server** para a atribuição de IPs dentro da faixa `192.168.10.100` a `192.168.10.200`.
+- O servidor também distribui informações adicionais como:
+  - Gateway padrão (`192.168.10.1`)
+  - Servidor DNS (`192.168.10.2`)
+  - Domínio de pesquisa (`corp.local`)
+
+**Infraestrutura em Docker:**
+```dockerfile
+FROM ubuntu:20.04
+
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y isc-dhcp-server
+
+COPY dhcpd.conf /etc/dhcp/dhcpd.conf
+
+RUN sed -i 's/INTERFACESv4=""/INTERFACESv4="eth0"/' /etc/default/isc-dhcp-server
+
+EXPOSE 67/udp
+
+CMD ["dhcpd", "-4", "-f", "-d"]
+```
+
+**Arquivo de configuração `dhcpd.conf`:**
+```conf
+default-lease-time 600;
+max-lease-time 7200;
+authoritative;
+
+subnet 192.168.10.0 netmask 255.255.255.0 {
+    range 192.168.10.100 192.168.10.200;
+    option routers 192.168.10.1;
+    option domain-name-servers 192.168.10.2;
+    option domain-name "corp.local";
+}
+```
+
+**Observações importantes:**
+- O servidor DHCP foi configurado como **authoritative**, assumindo controle sobre a rede `192.168.10.0/24`.
+- Ele escuta na interface `eth0`, que deve ser corretamente configurada no ambiente Docker.
+- O tempo padrão de concessão de IPs é de 600 segundos, podendo ser estendido até 7200 segundos.
+  
 - **Firewall (iptables/nftables ou UFW):**
   - Filtro de tráfego.
   - Permitir apenas serviços essenciais.
