@@ -5,11 +5,11 @@
 **Disciplina:** Gestão de Redes de Computadores  
 **Semestre:** 2025/01  
 **Data da Entrega:** 29/04/2025
-**Professor:** Roitier Campos Gonçalves
 **Turma:** Serviços de Redes de Computadores - 5° Período  
 **Valor:** 5 Pontos  
-**Autores:** Carlos Henrique Alves, Felipe Gomes, Iago José, Victor Augusto
+**Professor:** Roitier Campos Gonçalves
 
+**Autores:** Carlos Henrique Alves, Felipe Gomes, Iago José, Victor Augusto
 # Projeto de Infraestrutura de Rede Corporativa com Docker
 
 ## Objetivo
