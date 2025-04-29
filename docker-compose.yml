@@ -1,0 +1,133 @@
+version: '3.8'
+
+services:
+  router:
+    build:
+      context: ./router
+    container_name: router
+    cap_add:
+      - NET_ADMIN
+    networks:
+      servers:
+        ipv4_address: 192.168.10.1
+      clients:
+        ipv4_address: 192.168.20.1
+
+  firewall:
+    build:
+      context: ./firewall
+    container_name: firewall
+    cap_add:
+      - NET_ADMIN
+    depends_on:
+      - router
+    networks:
+      servers:
+        ipv4_address: 192.168.10.254
+      clients:
+        ipv4_address: 192.168.20.254
+
+  dns-server:
+    build:
+      context: ./dns-server
+    container_name: dns-server
+    
+    depends_on:
+      - router
+      - firewall
+    networks:
+      servers:
+        ipv4_address: 192.168.10.2
+
+  dhcp-server:
+    build:
+      context: ./dhcp-server
+    container_name: dhcp-server
+    depends_on:
+      - router
+      - firewall
+    networks:
+      servers:
+        ipv4_address: 192.168.10.3
+
+  ldap-server:
+    build:
+      context: ./ldap-server
+    container_name: ldap-server
+    depends_on:
+      - dns-server
+      - dhcp-server
+      - firewall
+    networks:
+      servers:
+        ipv4_address: 192.168.10.4
+
+  samba-server:
+    build:
+      context: ./samba-server
+    container_name: samba-server
+    depends_on:
+      - ldap-server
+      - firewall
+    networks:
+      servers:
+        ipv4_address: 192.168.10.5
+
+  ftp-server:
+    build:
+      context: ./ftp-server
+    container_name: ftp-server
+    depends_on:
+      - ldap-server
+      - firewall
+    networks:
+      servers:
+        ipv4_address: 192.168.10.6
+
+  web-server:
+    build:
+      context: ./web-server
+    container_name: web-server
+    depends_on:
+      - ldap-server
+      - firewall
+    networks:
+      servers:
+        ipv4_address: 192.168.10.7
+
+  client01:
+    image: ubuntu:20.04
+    container_name: client01
+    depends_on:
+      - dhcp-server
+      - router
+      - firewall
+    networks:
+      clients:
+        ipv4_address: 192.168.20.100
+    command: ["sleep", "infinity"]
+
+  client02:
+    image: ubuntu:20.04
+    container_name: client02
+    depends_on:
+      - dhcp-server
+      - router
+      - firewall
+    networks:
+      clients:
+        ipv4_address: 192.168.20.101
+    command: ["sleep", "infinity"]
+
+networks:
+  servers:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.10.0/24
+
+  clients:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 192.168.20.0/24

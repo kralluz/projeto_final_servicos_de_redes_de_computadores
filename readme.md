@@ -26,88 +26,15 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
 
 ## Escopo do Projeto
 
+## Escopo do Projeto
+
 ### 1. Serviços Básicos de Rede
-
-#### DNS (Bind9)
-Responsável por resolver nomes dentro da rede local (`corp.local`) e realizar a resolução reversa (associar IPs a nomes de hosts).
-
-**Configuração no Projeto:**
-- Foi utilizado o **Bind9** para criar um servidor DNS.
-- As zonas foram configuradas da seguinte forma:
-  - **Zona Forward**: `corp.local`, associando nomes como `dns.corp.local`, `dhcp.corp.local`, `ldap.corp.local`, entre outros, aos respectivos endereços IP.
-  - **Zona Reverse**: `10.168.192.in-addr.arpa`, permitindo a resolução reversa dos IPs da rede `192.168.10.0/24`.
-- Consultas para domínios externos são encaminhadas para os servidores públicos do Google (`8.8.8.8`, `8.8.4.4`).
-
-**Infraestrutura em Docker:**
-```dockerfile
-FROM ubuntu:20.04
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y bind9 dnsutils
-
-COPY setup-bind.sh /usr/local/bin/setup-bind.sh
-
-RUN bash /usr/local/bin/setup-bind.sh
-
-EXPOSE 53/udp 53/tcp
-
-CMD ["named", "-g", "-c", "/etc/bind/named.conf"]
-```
-
-**Setup automático:**
-- Utilização de um script `setup-bind.sh` que remove as configurações padrão do Bind9 e gera automaticamente:
-  - `named.conf.options`
-  - `named.conf.local`
-  - Arquivos de zona (`db.corp.local` e `db.192.168.10`)
-- O DNS escuta em todas as interfaces (`listen-on { any; };`) e permite consultas de qualquer origem (`allow-query { any; };`).
-
----
-
-#### DHCP (ISC DHCP Server)
-Responsável por atribuir automaticamente endereços IP e outras configurações de rede aos dispositivos conectados.
-
-**Configuração no Projeto:**
-- Foi utilizado o **ISC DHCP Server** para a atribuição de IPs dentro da faixa `192.168.10.100` a `192.168.10.200`.
-- O servidor também distribui informações adicionais como:
-  - Gateway padrão (`192.168.10.1`)
-  - Servidor DNS (`192.168.10.2`)
-  - Domínio de pesquisa (`corp.local`)
-
-**Infraestrutura em Docker:**
-```dockerfile
-FROM ubuntu:20.04
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y isc-dhcp-server
-
-COPY dhcpd.conf /etc/dhcp/dhcpd.conf
-
-RUN sed -i 's/INTERFACESv4=""/INTERFACESv4="eth0"/' /etc/default/isc-dhcp-server
-
-EXPOSE 67/udp
-
-CMD ["dhcpd", "-4", "-f", "-d"]
-```
-
-**Arquivo de configuração `dhcpd.conf`:**
-```conf
-default-lease-time 600;
-max-lease-time 7200;
-authoritative;
-
-subnet 192.168.10.0 netmask 255.255.255.0 {
-    range 192.168.10.100 192.168.10.200;
-    option routers 192.168.10.1;
-    option domain-name-servers 192.168.10.2;
-    option domain-name "corp.local";
-}
-```
-
-**Observações importantes:**
-- O servidor DHCP foi configurado como **authoritative**, assumindo controle sobre a rede `192.168.10.0/24`.
-- Ele escuta na interface `eth0`, que deve ser corretamente configurada no ambiente Docker.
-- O tempo padrão de concessão de IPs é de 600 segundos, podendo ser estendido até 7200 segundos.
-  
+- **DNS (Bind9 ou dnsmasq):**
+  - Resolução de nomes local.
+  - Zonas forward e reverse.
+- **DHCP (ISC DHCP ou dhcpd):**
+  - Atribuição automática de IPs.
+  - Reservas de IPs fixos.
 - **Firewall (iptables/nftables ou UFW):**
   - Filtro de tráfego.
   - Permitir apenas serviços essenciais.
@@ -132,22 +59,16 @@ subnet 192.168.10.0 netmask 255.255.255.0 {
 
 ## Etapas do Projeto
 
-### Fase 1: Planejamento
-- Análise dos requisitos
-- Definição da topologia, IPs, domínios, usuários
-- Planejamento de scripts/automação (ex. Ansible)
-
-### Fase 2: Configuração dos Serviços
+### Fase 1 Configuração dos Serviços
 - Cada serviço em container próprio
 - Segurança e integração entre serviços
 
-### Fase 3: Testes e Integração
+### Fase 2: Testes e Integração
 - Comunicação entre containers e sub-redes
 - Validação de DNS, DHCP, Firewall, LDAP, SAMBA, FTP, Web
 
-### Fase 4: Documentação e Automação
-- Relatório técnico com configurações e evidências
-- Scripts de automação (executar com 1 comando)
+### Fase 3: Documentação e Automação
+- Relatório técnico com configurações
 - Diagrama de rede
 - Publicação no GitHub
 - Apresentação
@@ -155,6 +76,7 @@ subnet 192.168.10.0 netmask 255.255.255.0 {
 ---
 
 ## Topologia de Rede
+![Topologia de Rede](topologia.png)
 
 ### Sub-redes
 - `192.168.10.0/24` - Servidores
@@ -208,6 +130,203 @@ subnet 192.168.10.0 netmask 255.255.255.0 {
 - Autenticação no Web Server (opcional)
 
 ---
+
+## Como Testar Todos os Serviços e Validar a Configuração
+
+Esta seção fornece instruções para testar cada componente da infraestrutura e verificar seu funcionamento correto.
+
+### 1. Router (Verificação de Roteamento)
+
+**Comandos de teste:**
+```bash
+# Verificar tabela de roteamento
+docker exec router ip route
+
+# Testar conectividade entre sub-redes
+docker exec client01 ping -c 4 192.168.10.7
+
+# Testar conectividade com a internet
+docker exec client01 ping -c 4 8.8.8.8
+```
+
+**Validação de sucesso:**
+- Containers de diferentes sub-redes conseguem se comunicar
+- Pacotes são corretamente encaminhados entre 192.168.10.0/24 e 192.168.20.0/24
+- Conexão com internet funciona (se configurada)
+
+### 2. DNS (Bind9 ou dnsmasq)
+
+**Comandos de teste:**
+```bash
+# Testar resolução de nomes internos
+docker exec client01 nslookup dns.corp.local
+docker exec client01 nslookup ldap.corp.local
+
+# Testar resolução de nomes externos
+docker exec client01 nslookup google.com
+
+# Verificar configuração do servidor DNS
+docker exec dns-server named-checkconf
+```
+
+**Validação de sucesso:**
+- Nomes internos são resolvidos para os IPs corretos
+- Nomes externos são resolvidos (se forwarding configurado)
+- Registros DNS correspondem à tabela planejada
+
+### 3. DHCP (ISC DHCP ou dhcpd)
+
+**Comandos de teste:**
+```bash
+# Verificar IP recebido via DHCP
+docker exec client01 ip addr show
+
+# Verificar logs do servidor DHCP
+docker exec dhcp-server cat /var/log/dhcpd.log
+# ou
+docker logs dhcp-server
+
+# Forçar renovação de IP
+docker exec client01 dhclient -r && docker exec client01 dhclient
+```
+
+**Validação de sucesso:**
+- Clientes recebem automaticamente IPs da faixa 192.168.20.0/24
+- Logs mostram solicitações DHCP atendidas
+- Gateway e DNS são corretamente configurados nos clientes
+
+### 4. Firewall (iptables/nftables ou UFW)
+
+**Comandos de teste:**
+```bash
+# Verificar regras de firewall
+docker exec firewall iptables -L -n -v
+# ou
+docker exec firewall nft list ruleset
+
+# Testar bloqueio (deve falhar se o firewall funcionar)
+docker exec client01 telnet 192.168.10.7 22
+
+# Testar permissão (deve funcionar)
+docker exec client01 curl http://intranet.corp.local
+```
+
+**Validação de sucesso:**
+- Regras definidas estão ativas
+- Serviços não permitidos são bloqueados
+- Serviços permitidos estão acessíveis
+- Logs mostram tentativas bloqueadas
+
+### 5. LDAP (OpenLDAP ou 389 Directory Server)
+
+**Comandos de teste:**
+```bash
+# Verificar status do serviço
+docker exec ldap-server ps aux | grep ldap
+
+# Listar usuários/entradas
+docker exec ldap-server ldapsearch -x -H ldap://ldap.corp.local \
+  -b "dc=corp,dc=local" -D "cn=admin,dc=corp,dc=local" -w senha
+
+# Testar autenticação
+docker exec client01 ldapwhoami -x -H ldap://ldap.corp.local \
+  -D "uid=alice,ou=users,dc=corp,dc=local" -w senha_alice
+```
+
+**Validação de sucesso:**
+- Serviço LDAP está rodando
+- Consulta retorna usuários e grupos esperados
+- Autenticação funciona com credenciais corretas
+
+### 6. SAMBA (Compartilhamento de Arquivos)
+
+**Comandos de teste:**
+```bash
+# Verificar status do serviço
+docker exec samba-server ps aux | grep smb
+
+# Listar compartilhamentos
+docker exec client01 smbclient -L //files.corp.local -U alice%senha_alice
+
+# Acessar compartilhamento
+docker exec -it client01 smbclient //files.corp.local/dados -U alice%senha_alice
+```
+
+**Validação de sucesso:**
+- Serviço Samba está rodando
+- Compartilhamentos aparecem na listagem
+- Acesso funciona com credenciais válidas
+- Permissões de grupos são respeitadas
+
+### 7. FTP (vsftpd ou ProFTPD)
+
+**Comandos de teste:**
+```bash
+# Verificar status do serviço
+docker exec ftp-server ps aux | grep ftp
+
+# Testar conexão FTP
+docker exec client01 ftp -n ftp.corp.local << EOF
+user alice senha_alice
+ls
+quit
+EOF
+
+# Testar upload/download
+docker exec client01 bash -c "echo 'teste' > arquivo.txt && \
+  ftp -n ftp.corp.local << EOF
+user alice senha_alice
+put arquivo.txt
+get arquivo.txt arquivo2.txt
+quit
+EOF"
+```
+
+**Validação de sucesso:**
+- Serviço FTP está rodando
+- Login aceito com credenciais LDAP
+- Listagem, upload e download funcionam
+- Transferências são seguras (SFTP/FTPS)
+
+### 8. Web Server (Apache ou NGINX)
+
+**Comandos de teste:**
+```bash
+# Verificar status do serviço
+docker exec web-server ps aux | grep apache
+# ou
+docker exec web-server ps aux | grep nginx
+
+# Testar acesso HTTP
+docker exec client01 curl http://intranet.corp.local
+# Com autenticação (se configurada)
+docker exec client01 curl --user alice:senha_alice http://intranet.corp.local
+
+# Verificar configuração
+docker exec web-server apachectl -t
+# ou
+docker exec web-server nginx -t
+```
+
+**Validação de sucesso:**
+- Serviço web está rodando
+- Página intranet é acessível
+- Virtual hosts respondem corretamente
+- Autenticação funciona (se configurada)
+
+### 9. Verificação de Integração
+
+**Comandos de teste:**
+```bash
+# Testar resolução DNS + autenticação + acesso a recurso
+docker exec client01 smbclient -L //files.corp.local -U alice%senha_alice
+
+# Acesso a website usando FQDN
+docker exec client01 curl http://intranet.corp.local
+
+# Verificar autenticação LDAP
+docker exec client01 id alice
+```
 
 ## Execução Final
 O projeto deve ser implantável com **um único comando**, utilizando scripts ou playbooks para provisionamento automatizado da infraestrutura em Docker.
