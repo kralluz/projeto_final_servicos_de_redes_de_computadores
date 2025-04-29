@@ -3,7 +3,7 @@
 ## Instituto Federal Goiano – Câmpus Ceres
 **Curso:** Bacharelado em Sistemas de Informação  
 **Disciplina:** Gestão de Redes de Computadores  
-**Autores:** Carlos Henrique Alves, Felipe Gomes, Iago José, Victor Augusto 
+**Autores:** Carlos Henrique Alves, Felipe Gomes, Iago José, Victor Augusto
 **Professor:** Roitier Campos Gonçalves  
 **Semestre:** 2025/01  
 **Turma:** Serviços de Redes de Computadores - 5° Período  
