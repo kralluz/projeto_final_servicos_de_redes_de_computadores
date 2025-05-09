@@ -5,7 +5,8 @@ RUN apt-get update && \
 
 # Cria diretório de zones com permissões corretas
 RUN mkdir -p /etc/bind/zones && \
-    chown -R bind:bind /etc/bind /var/cache/bind
+    chown -R bind:bind /etc/bind /var/cache/bind /var/run/named && \
+    chmod -R 755 /etc/bind /var/cache/bind /var/run/named
 
 COPY setup-bind.sh /usr/local/bin/setup-bind.sh
 RUN chmod +x /usr/local/bin/setup-bind.sh

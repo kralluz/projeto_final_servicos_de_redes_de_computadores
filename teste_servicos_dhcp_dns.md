@@ -64,14 +64,6 @@ docker exec client01 ifconfig eth0
 
 Confirme que o cliente recebeu o mesmo endereço IP (192.168.20.100) ou outro dentro do escopo do DHCP.
 
-### 7. Verificar tabela de rotas
-
-```bash
-docker exec client01 ip route
-```
-
-Confirme que a rota para a rede local e a rota padrão estão configuradas corretamente.
-
 ## Etapas de Teste para o Serviço DNS
 
 ### 1. Verificar configuração do DNS no cliente
@@ -87,7 +79,7 @@ Verifique se o arquivo contém:
 ### 2. Testar resolução de nomes externos
 
 ```bash
-docker exec client01 nslookup google.com
+docker exec client01 nslookup firewall.corp.local
 ```
 
 Confirme que o cliente consegue resolver nomes de domínios externos.
@@ -119,39 +111,3 @@ docker exec client01 time nslookup google.com
 ```
 
 Avalie o tempo de resposta do servidor DNS.
-
-## Resolução de Problemas
-
-### Problemas com DHCP
-
-1. Se o cliente não receber um IP via DHCP:
-   - Verifique se o servidor DHCP está em execução: `docker ps | grep dhcp`
-   - Verifique os logs do servidor DHCP: `docker logs dhcp-server`
-   - Tente renovar o lease manualmente: `docker exec client01 dhclient -r eth0 && docker exec client01 dhclient eth0`
-
-2. Se o cliente receber IP incorreto:
-   - Verifique a configuração do servidor DHCP
-   - Confirme se existem conflitos de IP na rede
-
-### Problemas com DNS
-
-1. Se o cliente não conseguir resolver nomes:
-   - Verifique se o servidor DNS está em execução: `docker ps | grep dns`
-   - Verifique os logs do servidor DNS: `docker logs dns-server`
-   - Confirme se o arquivo `/etc/resolv.conf` está configurado corretamente
-   - Teste usando outro servidor DNS: `docker exec client01 nslookup google.com 8.8.8.8`
-
-2. Se apenas nomes internos não resolverem:
-   - Verifique as zonas DNS configuradas no servidor
-   - Confirme se os registros A estão configurados corretamente
-
-## Conclusão
-
-Após executar todas as etapas de teste, você deverá ter um ambiente com DHCP e DNS funcionando corretamente. O cliente deve ser capaz de:
-
-1. Obter automaticamente um endereço IP via DHCP
-2. Receber todas as configurações de rede necessárias (gateway, DNS, etc.)
-3. Resolver nomes de domínios internos e externos
-4. Comunicar-se com outros hosts na rede
-
-Se todos os testes forem bem-sucedidos, os serviços DHCP e DNS estão configurados corretamente. 

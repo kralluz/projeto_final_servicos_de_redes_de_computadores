@@ -17,6 +17,12 @@ iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 # Permitir ICMP (ping)
 iptables -A INPUT -p icmp -j ACCEPT
 
+# Permitir tráfego DNS
+iptables -A INPUT -p udp --dport 53 -j ACCEPT
+iptables -A INPUT -p tcp --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp --dport 53 -j ACCEPT
+iptables -A FORWARD -p tcp --dport 53 -j ACCEPT
+
 # Permitir tráfego entre as redes servers e clients
 iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT
 iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT
