@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+
   router:
     build:
       context: ./router
@@ -9,9 +10,10 @@ services:
       - NET_ADMIN
     networks:
       servers:
-        ipv4_address: 192.168.10.1
+        ipv4_address: 192.168.10.4
       clients:
-        ipv4_address: 192.168.20.1
+        ipv4_address: 192.168.20.4
+    restart: unless-stopped
 
   firewall:
     build:
@@ -23,22 +25,23 @@ services:
       - router
     networks:
       servers:
-        ipv4_address: 192.168.10.254
+        ipv4_address: 192.168.10.5
       clients:
-        ipv4_address: 192.168.20.254
+        ipv4_address: 192.168.20.5
+    restart: unless-stopped
 
   dns-server:
     build:
       context: ./dns-server
     container_name: dns-server
-    
     depends_on:
       - router
       - firewall
     networks:
       servers:
-        ipv4_address: 192.168.10.2
-
+        ipv4_address: 192.168.10.3
+    restart: unless-stopped
+    
   dhcp-server:
     build:
       context: ./dhcp-server
@@ -46,10 +49,14 @@ services:
     depends_on:
       - router
       - firewall
+      - dns-server
     networks:
       servers:
-        ipv4_address: 192.168.10.3
-
+        ipv4_address: 192.168.10.2
+      clients:
+        ipv4_address: 192.168.20.2
+    restart: unless-stopped
+        
   ldap-server:
     build:
       context: ./ldap-server
@@ -60,7 +67,8 @@ services:
       - firewall
     networks:
       servers:
-        ipv4_address: 192.168.10.4
+        ipv4_address: 192.168.10.6
+    restart: unless-stopped
 
   samba-server:
     build:
@@ -71,7 +79,8 @@ services:
       - firewall
     networks:
       servers:
-        ipv4_address: 192.168.10.5
+        ipv4_address: 192.168.10.7
+    restart: unless-stopped
 
   ftp-server:
     build:
@@ -82,7 +91,8 @@ services:
       - firewall
     networks:
       servers:
-        ipv4_address: 192.168.10.6
+        ipv4_address: 192.168.10.8
+    restart: unless-stopped
 
   web-server:
     build:
@@ -93,31 +103,25 @@ services:
       - firewall
     networks:
       servers:
-        ipv4_address: 192.168.10.7
+        ipv4_address: 192.168.10.9
+    restart: unless-stopped
 
   client01:
-    image: ubuntu:20.04
+    build:
+      context: .
+      dockerfile: Dockerfile.client
     container_name: client01
     depends_on:
       - dhcp-server
       - router
       - firewall
+      - dns-server
+    cap_add:
+      - NET_ADMIN
     networks:
       clients:
-        ipv4_address: 192.168.20.100
-    command: ["sleep", "infinity"]
-
-  client02:
-    image: ubuntu:20.04
-    container_name: client02
-    depends_on:
-      - dhcp-server
-      - router
-      - firewall
-    networks:
-      clients:
-        ipv4_address: 192.168.20.101
-    command: ["sleep", "infinity"]
+        ipv4_address: 192.168.20.3
+    restart: unless-stopped
 
 networks:
   servers:

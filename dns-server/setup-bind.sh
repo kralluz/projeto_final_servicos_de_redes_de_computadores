@@ -41,8 +41,8 @@ cat << 'EOF' > /etc/bind/zones/db.corp.local
          604800 )   ; Negative Cache TTL
 ;
 @       IN NS   dns.corp.local.
-dns     IN A    192.168.10.2
-dhcp    IN A    192.168.10.3
+dhcp    IN A    192.168.10.2
+dns     IN A    192.168.10.3
 ldap    IN A    192.168.10.4
 files   IN A    192.168.10.5
 ftp     IN A    192.168.10.6
@@ -60,8 +60,8 @@ cat << 'EOF' > /etc/bind/zones/db.192.168.10
          604800 )   ; Negative Cache TTL
 ;
 @       IN NS    dns.corp.local.
-2       IN PTR   dns.corp.local.
-3       IN PTR   dhcp.corp.local.
+2       IN PTR   dhcp.corp.local.
+3       IN PTR   dns.corp.local.
 4       IN PTR   ldap.corp.local.
 5       IN PTR   files.corp.local.
 6       IN PTR   ftp.corp.local.

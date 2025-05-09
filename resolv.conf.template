@@ -1,0 +1,5 @@
+# Configuração do DNS para o domínio corp.local
+domain corp.local
+search corp.local
+nameserver 192.168.10.3  # Servidor DNS principal
+nameserver 8.8.8.8       # Servidor DNS externo (fallback) 
