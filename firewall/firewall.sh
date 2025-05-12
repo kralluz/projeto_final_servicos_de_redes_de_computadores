@@ -1,36 +1,33 @@
 #!/bin/bash
 
-# Limpa regras
-iptables -F
-iptables -t nat -F
-iptables -X
+# Habilita o encaminhamento de pacotes
+echo 1 > /proc/sys/net/ipv4/ip_forward
 
-# Configura política padrão - mais permissiva para testes
+# Limpa todas as regras existentes
+iptables -F
+iptables -X
+iptables -t nat -F
+iptables -t mangle -F
+
+# Define as políticas padrão
 iptables -P INPUT ACCEPT
 iptables -P FORWARD ACCEPT
 iptables -P OUTPUT ACCEPT
 
-# Loopback e conexões estabelecidas
+# Permite tráfego na interface loopback
 iptables -A INPUT -i lo -j ACCEPT
-iptables -A INPUT -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+iptables -A OUTPUT -o lo -j ACCEPT
 
-# Permitir ICMP (ping)
-iptables -A INPUT -p icmp -j ACCEPT
+# Permite conexões estabelecidas
+iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+iptables -A OUTPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
 
-# Permitir tráfego DNS
-iptables -A INPUT -p udp --dport 53 -j ACCEPT
-iptables -A INPUT -p tcp --dport 53 -j ACCEPT
-iptables -A FORWARD -p udp --dport 53 -j ACCEPT
-iptables -A FORWARD -p tcp --dport 53 -j ACCEPT
+# Permite NAT
+iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
 
-# Permitir tráfego entre as redes servers e clients
+# Permite encaminhamento entre interfaces
 iptables -A FORWARD -i eth0 -o eth1 -j ACCEPT
 iptables -A FORWARD -i eth1 -o eth0 -j ACCEPT
 
-# NAT
-iptables -t nat -A POSTROUTING -o eth0 -j MASQUERADE
-
-# Mantém container vivo
-echo "Firewall configurado."
-exec tail -f /dev/null
+echo "Firewall configurado com sucesso!"
     

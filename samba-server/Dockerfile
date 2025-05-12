@@ -19,4 +19,4 @@ RUN useradd -M -s /usr/sbin/nologin sambauser && \
 
 EXPOSE 445 139
 
-CMD ["smbd", "-FS", "--no-process-group"]
+CMD ["smbd", "-F", "--no-process-group"]

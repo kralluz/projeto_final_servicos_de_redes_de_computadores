@@ -1,7 +1,15 @@
-FROM alpine:latest
+FROM ubuntu:22.04
 
-RUN apk add --no-cache iptables bash
+RUN apt-get update && apt-get install -y \
+    iptables \
+    net-tools \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY firewall.sh /usr/local/bin/firewall.sh
+COPY firewall.sh /firewall.sh
+RUN chmod +x /firewall.sh
 
-ENTRYPOINT ["sh", "/usr/local/bin/firewall.sh"]
+# Adiciona capacidades necessárias
+ENV CAPABILITIES="NET_ADMIN NET_RAW"
+
+# Mantém o container rodando
+CMD ["sh", "-c", "/firewall.sh && sleep infinity"]

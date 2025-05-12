@@ -1,16 +1,18 @@
 FROM nginx:latest
 
-# Instala apache2-utils para htpasswd e limpa cache
+# Instala ferramentas necessárias
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends apache2-utils && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copia configuração do host virtual e cria arquivo de senhas
-COPY default.conf /etc/nginx/conf.d/default.conf
-RUN htpasswd -cb /etc/nginx/.htpasswd alice alicepass
+    apt-get install -y --no-install-recommends \
+    apache2-utils \
+    iproute2 \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
 # Copia página inicial
 COPY index.html /usr/share/nginx/html/index.html
+
+# Configuração simples do Nginx
+COPY default.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
 

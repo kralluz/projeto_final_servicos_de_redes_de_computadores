@@ -109,7 +109,7 @@ services:
   client01:
     image: alpine:latest
     container_name: client01
-    command: sh -c "apk add --no-cache iproute2 curl bind-tools && sleep infinity"
+    command: sh -c "apk add --no-cache iproute2 curl bind-tools samba-client && sleep infinity"
     depends_on:
       - dhcp-server
       - router
