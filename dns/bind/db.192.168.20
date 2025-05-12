@@ -1,0 +1,5 @@
+$TTL 604800
+@   IN SOA dns.rede.local. admin.rede.local. (
+        1 604800 86400 2419200 604800 )
+@       IN NS    dns.rede.local.
+252     IN PTR   dhcp-server.rede.local. 

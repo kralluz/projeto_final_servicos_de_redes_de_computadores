@@ -1,0 +1,19 @@
+; Arquivo de zona (db.rede.local) para o domínio rede.local
+; (Adicionado registro A para o servidor NGINX)
+
+$TTL 604800
+@ IN SOA dns.rede.local. admin.rede.local. (
+    2 ; serial
+    604800 ; refresh
+    86400 ; retry
+    2419200 ; expire
+    604800 ; ttl
+)
+
+; Registros NS e MX (se houver) permanecem inalterados
+; (Exemplo: @ IN NS dns.rede.local.)
+
+; Registro A para o servidor NGINX (por exemplo, nginx.rede.local apontando para 192.168.10.20)
+nginx IN A 192.168.10.20
+
+; (Outros registros, se existirem, permanecem inalterados) 

@@ -1,0 +1,24 @@
+dn: ou=users,dc=empresa,dc=local
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=groups,dc=empresa,dc=local
+objectClass: organizationalUnit
+ou: groups
+
+dn: cn=admin,ou=users,dc=empresa,dc=local
+objectClass: inetOrgPerson
+cn: admin
+sn: Administrator
+userPassword: admin123
+uid: admin
+
+dn: cn=ftp_users,ou=groups,dc=empresa,dc=local
+objectClass: groupOfNames
+cn: ftp_users
+member: cn=admin,ou=users,dc=empresa,dc=local
+
+dn: cn=samba_users,ou=groups,dc=empresa,dc=local
+objectClass: groupOfNames
+cn: samba_users
+member: cn=admin,ou=users,dc=empresa,dc=local 
