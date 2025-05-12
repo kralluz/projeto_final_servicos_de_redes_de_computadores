@@ -2,37 +2,15 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Atualiza os repositórios e instala ferramentas essenciais
+# Instala ferramentas básicas de rede
 RUN apt-get update && \
     apt-get install -y \
     iproute2 \
-    net-tools \
-    dnsutils \
     iputils-ping \
+    dnsutils \
     curl \
-    wget \
-    telnet \
-    vim \
-    tcpdump \
-    traceroute \
-    nmap \
-    isc-dhcp-client \
-    openssh-client \
-    netcat \
-    && apt-get clean \
+    net-tools \
     && rm -rf /var/lib/apt/lists/*
 
-# Configuração para DHCP
-RUN mkdir -p /var/lib/dhcp/ && \
-    touch /var/lib/dhcp/dhclient.leases
-
-# Configuração para DNS
-COPY resolv.conf.template /etc/resolv.conf.template
-
-# Script de inicialização
-COPY client-init.sh /usr/local/bin/client-init.sh
-RUN chmod +x /usr/local/bin/client-init.sh
-
-# Mantém o container em execução
-ENTRYPOINT ["/usr/local/bin/client-init.sh"]
-CMD ["sleep", "infinity"]
+# Mantém o container rodando
+CMD ["sleep", "infinity"] 
