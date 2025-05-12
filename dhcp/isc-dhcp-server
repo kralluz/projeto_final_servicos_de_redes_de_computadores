@@ -1,0 +1,4 @@
+INTERFACESv4="eth0"
+INTERFACESv6=""
+DHCPD_CONF=/etc/dhcp/dhcpd.conf
+DHCPD_PID=/var/run/dhcpd.pid 

@@ -1,115 +1,46 @@
-version: '3.8'
+version: "3.8"
 
 services:
-
   router:
-    build:
-      context: ./router
+    build: ./router
     container_name: router
-    cap_add:
-      - NET_ADMIN
+    cap_add: [NET_ADMIN]
     networks:
-      servers:
-        ipv4_address: 192.168.10.4
-      clients:
-        ipv4_address: 192.168.20.4
+      servers: { ipv4_address: 192.168.10.254 }
+      clients: { ipv4_address: 192.168.20.254 }
     restart: unless-stopped
 
   firewall:
-    build:
-      context: ./firewall
+    build: ./firewall
     container_name: firewall
-    cap_add:
-      - NET_ADMIN
-    depends_on:
-      - router
+    cap_add: [NET_ADMIN]
+    depends_on: [router]
     networks:
-      servers:
-        ipv4_address: 192.168.10.5
-      clients:
-        ipv4_address: 192.168.20.5
+      servers: { ipv4_address: 192.168.10.253 }
+      clients: { ipv4_address: 192.168.20.253 }
     restart: unless-stopped
 
   dns-server:
-    build:
-      context: ./dns-server
+    build: ./dns
     container_name: dns-server
-    depends_on:
-      - router
-      - firewall
+    cap_add: [NET_ADMIN]
+    depends_on: [router]
     networks:
-      servers:
-        ipv4_address: 192.168.10.3
+      servers: { ipv4_address: 192.168.10.10 }
     restart: unless-stopped
-    
+
   dhcp-server:
-    build:
-      context: ./dhcp-server
+    build: ./dhcp
     container_name: dhcp-server
-    depends_on:
-      - router
-      - firewall
-      - dns-server
+    cap_add: [NET_ADMIN]
+    depends_on: [router]
     networks:
-      servers:
-        ipv4_address: 192.168.10.2
-      clients:
-        ipv4_address: 192.168.20.2
-    restart: unless-stopped
-        
-  ldap-server:
-    build:
-      context: ./ldap-server
-    container_name: ldap-server
-    depends_on:
-      - dns-server
-      - dhcp-server
-      - firewall
-    networks:
-      servers:
-        ipv4_address: 192.168.10.6
-    restart: unless-stopped
-
-  samba-server:
-    build:
-      context: ./samba-server
-    container_name: samba-server
-    depends_on:
-      - ldap-server
-      - firewall
-    networks:
-      servers:
-        ipv4_address: 192.168.10.7
-    restart: unless-stopped
-
-  ftp-server:
-    build:
-      context: ./ftp-server
-    container_name: ftp-server
-    depends_on:
-      - ldap-server
-      - firewall
-    networks:
-      servers:
-        ipv4_address: 192.168.10.8
-    restart: unless-stopped
-
-  web-server:
-    build:
-      context: ./web-server
-    container_name: web-server
-    depends_on:
-      - ldap-server
-      - firewall
-    networks:
-      servers:
-        ipv4_address: 192.168.10.9
+      clients: { ipv4_address: 192.168.20.252 }
     restart: unless-stopped
 
   client01:
-    image: alpine:latest
+    image: debian:stable-slim
     container_name: client01
-    command: sh -c "apk add --no-cache iproute2 curl bind-tools samba-client && sleep infinity"
     depends_on:
       - dhcp-server
       - router
@@ -117,20 +48,24 @@ services:
       - dns-server
     cap_add:
       - NET_ADMIN
+    command: >
+      sh -c "
+        apt-get update && apt-get install -y isc-dhcp-client &&
+        ip link set eth0 up &&
+        ip addr flush dev eth0 &&
+        dhclient -v eth0 &&
+        sleep infinity
+      "
     networks:
       clients: {}
     restart: unless-stopped
-
 
 networks:
   servers:
     driver: bridge
     ipam:
-      config:
-        - subnet: 192.168.10.0/24
-
+      config: [{ subnet: 192.168.10.0/24 }]
   clients:
     driver: bridge
     ipam:
-      config:
-        - subnet: 192.168.20.0/24
+      config: [{ subnet: 192.168.20.0/24 }] 

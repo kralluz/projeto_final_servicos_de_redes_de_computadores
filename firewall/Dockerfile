@@ -1,15 +1,7 @@
-FROM ubuntu:22.04
+FROM debian:stable-slim
+RUN apt-get update && apt-get install -y iptables && rm -rf /var/lib/apt/lists/*
 
-RUN apt-get update && apt-get install -y \
-    iptables \
-    net-tools \
-    && rm -rf /var/lib/apt/lists/*
+COPY regras.sh /usr/local/bin/regras.sh
+RUN chmod +x /usr/local/bin/regras.sh
 
-COPY firewall.sh /firewall.sh
-RUN chmod +x /firewall.sh
-
-# Adiciona capacidades necessárias
-ENV CAPABILITIES="NET_ADMIN NET_RAW"
-
-# Mantém o container rodando
-CMD ["sh", "-c", "/firewall.sh && sleep infinity"]
+ENTRYPOINT ["/usr/local/bin/regras.sh"] 
