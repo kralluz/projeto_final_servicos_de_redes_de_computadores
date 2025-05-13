@@ -28,6 +28,8 @@ services:
     networks:
       servers: { ipv4_address: 192.168.10.10 }
     restart: unless-stopped
+    volumes:
+      - ./dns/bind:/etc/bind
 
   dhcp-server:
     build: ./dhcp
@@ -58,6 +60,15 @@ services:
       "
     networks:
       clients: {}
+    restart: unless-stopped
+
+  nginx:
+    build: ./nginx
+    container_name: nginx
+    ports:
+      - "80:80"
+    networks:
+      servers: { ipv4_address: 192.168.10.20 }
     restart: unless-stopped
 
 networks:

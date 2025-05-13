@@ -6,4 +6,8 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive \
 
 COPY bind /etc/bind
 EXPOSE 53/udp 53/tcp
-CMD ["/usr/sbin/named","-g","-c","/etc/bind/named.conf"] 
+
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
+
+CMD ["/start.sh"] 

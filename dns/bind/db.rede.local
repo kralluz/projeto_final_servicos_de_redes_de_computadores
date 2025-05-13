@@ -1,7 +1,9 @@
 $TTL 604800
 @   IN SOA dns.rede.local. admin.rede.local. (
-        2 604800 86400 2419200 604800 )
+        3 604800 86400 2419200 604800 )
 @       IN NS    dns.rede.local.
 dns     IN A     192.168.10.10
 router  IN A     192.168.10.254
-firewall IN A    192.168.10.253 
+firewall IN A    192.168.10.253
+nginx   IN A     192.168.10.20
+dhcp-server IN A 192.168.20.252 
