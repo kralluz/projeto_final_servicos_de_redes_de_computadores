@@ -17,7 +17,7 @@ services:
     depends_on: [router]
     networks:
       servers: { ipv4_address: 192.168.10.4 }
-      clients: { ipv4_address: 192.168.20.253 }
+      clients: { ipv4_address: 192.168.20.4 }
     restart: unless-stopped
 
   dns-server:
