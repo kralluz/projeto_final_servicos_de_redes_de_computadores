@@ -39,7 +39,6 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
   - Permitir apenas serviços essenciais.
 - **SAMBA:**
   - Compartilhamento de arquivos.
-  - Autenticação integrada com LDAP.
 - **Web Server (Apache ou NGINX):**
   - Página interna e virtual hosts.
 
@@ -59,7 +58,7 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
 
 ### Fase 2: Testes e Integração
 - Comunicação entre containers e sub-redes
-- Validação de DNS, DHCP, Firewall, LDAP, SAMBA, FTP, Web
+- Validação de DNS, DHCP, Firewall,  SAMBA, Web
 
 ### Fase 3: Documentação e Automação
 - Relatório técnico com configurações
@@ -101,88 +100,3 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
 | Firewall | firewall.corp.local | 192.168.10.4 |
 
 ---
-
-## Estrutura de Usuários (LDAP)
-- **Base DN:** `dc=corp,dc=local`
-- **Grupos:** `admins`, `developers`, `finance`, `guests`
-
-| Nome  | UID   | Grupo      |
-|--------|--------|------------|
-| Alice  | alice  | admins     |
-| Bob    | bob    | developers |
-| Carol  | carol  | finance    |
-| Dave   | dave   | guests     |
-
-**Permissões:**
-- Login via LDAP
-- Acesso a SAMBA conforme grupo
-- FTP se autorizado
-- Autenticação no Web Server (opcional)
-
-## Como Testar Todos os Serviços e Validar a Configuração
-
-### 1. Router (Verificação de Roteamento)
-
-### 2. DNS (Bind9 ou dnsmasq)
-
-### 3. DHCP (ISC DHCP ou dhcpd)
-
-### 4. Firewall (iptables/nftables ou UFW)
-
-### 5. SAMBA (Compartilhamento de Arquivos)
-
-**Comandos de teste:**
-```bash
-# Verificar status do serviço
-docker exec samba-server ps aux | grep smb
-
-# Listar compartilhamentos
-# Acesso público (sem autenticação LDAP)
-docker exec client01 smbclient -L //files.corp.local -N
-
-docker exec client01 smbclient //files.corp.local/public -N -c 'ls'
-```
-
-**Validação de sucesso:**
-- Serviço Samba está rodando
-- Compartilhamentos aparecem na listagem
-- Acesso ao compartilhamento público funciona
-
-### 6. Web Server (Apache ou NGINX)
-
-**Comandos de teste:**
-```bash
-# Verificar status do serviço
-# Para NGINX:
-docker exec web-server ps aux | grep nginx
-# Para Apache:
-docker exec web-server ps aux | grep apache
-
-# Testar acesso HTTP
-docker exec client01 curl http://intranet.corp.local
-
-# Verificar configuração
-# Para NGINX:
-docker exec web-server nginx -t
-# Para Apache:
-docker exec web-server apachectl -t
-```
-
-**Validação de sucesso:**
-- Serviço web está rodando
-- Página intranet é acessível
-- Virtual hosts respondem corretamente
-
-### 7. Verificação de Integração
-
-**Comandos de teste:**
-```bash
-# Testar resolução DNS + acesso a recurso Samba
-docker exec client01 smbclient -L //files.corp.local -N
-
-docker exec client01 curl http://intranet.corp.local
-```
-
-## Execução Final
-O projeto deve ser implantável com **um único comando**, utilizando scripts ou playbooks para provisionamento automatizado da infraestrutura em Docker.
-
