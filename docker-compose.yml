@@ -84,9 +84,6 @@ services:
     volumes:
       - ./samba/smb.conf:/etc/samba/smb.conf
       - ./samba/share:/samba/share
-    # ports:
-    #   - "139:139"
-    #   - "445:445"
 
 
 networks:
