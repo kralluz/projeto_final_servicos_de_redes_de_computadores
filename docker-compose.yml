@@ -71,6 +71,23 @@ services:
       servers: { ipv4_address: 192.168.10.20 }
     restart: unless-stopped
 
+  samba-server:
+    build: ./samba
+    container_name: samba-server
+    cap_add: [NET_ADMIN]
+    depends_on: [router]
+    networks:
+      servers: { ipv4_address: 192.168.10.5 }
+    restart: unless-stopped
+    environment:
+      - TZ=America/Sao_Paulo
+    volumes:
+      - ./samba/smb.conf:/etc/samba/smb.conf
+      - ./samba/share:/samba/share
+    # ports:
+    #   - "139:139"
+    #   - "445:445"
+
 networks:
   servers:
     driver: bridge
@@ -79,4 +96,4 @@ networks:
   clients:
     driver: bridge
     ipam:
-      config: [{ subnet: 192.168.20.0/24 }] 
+      config: [{ subnet: 192.168.20.0/24 }]

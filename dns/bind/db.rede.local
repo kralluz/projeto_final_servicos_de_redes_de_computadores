@@ -6,4 +6,6 @@ dns     IN A     192.168.10.10
 router  IN A     192.168.10.254
 firewall IN A    192.168.10.253
 nginx   IN A     192.168.10.20
-dhcp-server IN A 192.168.20.252 
+dhcp-server IN A 192.168.20.252
+samba-server IN A 192.168.10.5
+files IN A 192.168.10.5
