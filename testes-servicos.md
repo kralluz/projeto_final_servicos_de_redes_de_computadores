@@ -41,7 +41,7 @@ docker exec client01 ip addr show eth0
 
 ## 3. Firewall e Conectividade
 
-docker exec client01 ping -c 2 192.168.20.4  # firewall
+docker exec client01 ping -c 2 192.168.20.253  # firewall
 
 docker exec client01 ping -c 2 192.168.20.254  # router
 
