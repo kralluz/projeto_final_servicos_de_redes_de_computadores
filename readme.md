@@ -81,7 +81,7 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
 | router           | Roteador                  | 192.168.10.1 / 192.168.20.1 | Ambas |
 | dns-server       | DNS interno               | 192.168.10.2     | Servidores  |
 | dhcp-server      | DHCP                      | 192.168.10.3     | Servidores  |
-| firewall         | Firewall                  | 192.168.10.4   | Servidores  |
+| firewall         | Firewall                  | 192.168.10.253   | Servidores  |
 | samba-server     | Compartilhamento de arquivos | 192.168.10.5  | Servidores  |
 | web-server       | Web Server                | 192.168.10.20    | Servidores  |
 | client01         | Cliente                   | DHCP (ex: 192.168.20.100)  | Clientes    |
@@ -97,6 +97,6 @@ Implementar uma infraestrutura de rede corporativa básica utilizando Docker, in
 | DHCP   | dhcp.corp.local     | 192.168.10.3   |
 | SAMBA  | files.corp.local    | 192.168.10.5   |
 | Web    | intranet.corp.local | 192.168.10.20  |
-| Firewall | firewall.corp.local | 192.168.10.4 |
+| Firewall | firewall.corp.local | 192.168.10.253 |
 
 ---
